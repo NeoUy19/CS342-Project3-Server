@@ -1,2 +1,2 @@
-# CS342-Project3
-CS342 - Software Design  
+# CS342-Project3-Server
+CS342 - Software Design 
