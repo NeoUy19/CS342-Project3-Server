@@ -1,6 +1,8 @@
 package Checkers;
 
-public class Move {
+import java.io.Serializable;
+
+public class Move implements Serializable { //Allows move objects to be sent over a network
     Pieces piece;
     int pRow,  pCol, nRow, nCol;
 

@@ -1,3 +1,4 @@
+
 import java.util.HashMap;
 
 import javafx.application.Application;
@@ -5,31 +6,42 @@ import javafx.application.Platform;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.ListView;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 
-public class ServerGUI extends Application {
-    HashMap<String,Scene> scenes;
-    Server serverConeection;
-    ListView serverLog;
+public class ServerGUI extends Application{
 
-    public static void main(String[] args) { launch(args); }
+    HashMap<String, Scene> sceneMap;
+    Server serverConnection;
+
+    ListView<String> SERVERLOG;
+
+
+    public static void main(String[] args) {
+        launch(args);
+    }
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        serverLog = new ListView<String>();
-        serverConeection = new Server(data -> {
-            Platform.runLater(() -> {
-                String msg = data;
-                serverLog.getItems().add(msg);
+        SERVERLOG = new ListView<String>();
+        serverConnection = new Server(data -> {
+            Platform.runLater(()->{
+                Message msg = (Message) data;
+                SERVERLOG.getItems().add(msg.getClient() + " [" + msg.getMsgType() + "]: " + msg.getMessage());
             });
         });
 
-        scenes = new HashMap<String, Scene>();
 
-        scenes.put("Server Log", createServerGUI());
+        sceneMap = new HashMap<String, Scene>();
+
+        sceneMap.put("server",  createServerGui());
 
         primaryStage.setOnCloseRequest(new EventHandler<WindowEvent>() {
             @Override
@@ -39,16 +51,24 @@ public class ServerGUI extends Application {
             }
         });
 
-        primaryStage.setScene(scenes.get("Server Log"));
-        primaryStage.setTitle("Server Log");
+        primaryStage.setScene(sceneMap.get("server"));
+        primaryStage.setTitle("This is the Server");
         primaryStage.show();
+
     }
 
-    public Scene createServerGUI() {
-        BorderPane root = new BorderPane();
-        root.setPadding(new Insets(70));
+    public Scene createServerGui() {
 
-        pane.setCenter(serverLog);
-        return new Scene(root, 500,400);
+        BorderPane pane = new BorderPane();
+        pane.setPadding(new Insets(70));
+        pane.setStyle("-fx-background-color: coral");
+
+        pane.setCenter(SERVERLOG);
+        pane.setStyle("-fx-font-family: 'serif'");
+        return new Scene(pane, 500, 400);
+
+
     }
+
+
 }
