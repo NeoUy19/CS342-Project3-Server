@@ -87,17 +87,17 @@ public class Server {
                 try{
                     Object received = in.readObject();
                     if (received instanceof Checkers.Move){ //Player moves a piece
+                        System.out.println("Move received from client");
                         Checkers.Move playerMove = (Checkers.Move)  received;
                         GameSession session = sessions.get(this);
-                        ClientThread other;
+                        System.out.println("Session: " + session);
+                        System.out.println("Move piece: " + playerMove.getPiece());
+                        System.out.println("From: " + playerMove.getpRow() + "," + playerMove.getpCol() +
+                                " To: " + playerMove.getnRow() + "," + playerMove.getnCol());
+
                         if (session.rules.isValidMove(playerMove)){ //valid move check
-                            if (session.playerOne.getClientThread() == this) {
-                                other = session.playerTwo.getClientThread();
-                            }
-                            else {
-                                other = session.playerOne.getClientThread();
-                            }
-                            other.out.writeObject(playerMove); //send players move to the other player
+                            session.playerOne.getClientThread().out.writeObject(playerMove);
+                            session.playerTwo.getClientThread().out.writeObject(playerMove);
                             SERVERLOG.accept(new Message(Message.serverMessage, playerMove.getPiece().getColor().toString() +"Moved their piece!", "Server"));
 
                         }
@@ -158,7 +158,7 @@ public class Server {
                             }
                         }
                         else if (message.getMsgType().equals(Message.challengeResponse)) {
-                            if (message.getMessage().equals("accept")) {
+                            if (message.getMessage().equals("Accept")) {
                                 Players challenger = null;
                                 Players accepter = null;
                                 for (Players p : players) {
@@ -177,11 +177,14 @@ public class Server {
                                     sessions.put(accepter.getClientThread(), newSession);
                                     challenger.setStatus(Players.Status.IN_GAME);
                                     accepter.setStatus(Players.Status.IN_GAME);
+                                    challenger.getClientThread().out.writeObject(new Message(Message.startGame, "BLACK", challenger.getClientThread().username, accepter.getClientThread().username));
+                                    accepter.getClientThread().out.writeObject(new Message(Message.startGame, "RED", accepter.getClientThread().username, challenger.getClientThread().username));
                                     SERVERLOG.accept(new Message(Message.serverMessage,
                                             challenger.getClientThread().username + " vs " +
                                                     accepter.getClientThread().username + " game started!", "Server"));
+
                                 }
-                            } else if (message.getMessage().equals("decline")) {
+                            } else if (message.getMessage().equals("Decline")) {
                                 // Notify the challenger their challenge was declined
                                 for (ClientThread c : clients) {
                                     if (c.username != null && c.username.equals(message.getTarget())) {
@@ -196,6 +199,8 @@ public class Server {
                     }
                 }
                 catch(Exception e){
+                    System.out.println("Exception: " + e.getClass().getName() + " - " + e.getMessage());
+                    e.printStackTrace();
                     SERVERLOG.accept(e);
                 }
             }

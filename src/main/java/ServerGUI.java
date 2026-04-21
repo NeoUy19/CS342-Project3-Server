@@ -33,8 +33,10 @@ public class ServerGUI extends Application{
         SERVERLOG = new ListView<String>();
         serverConnection = new Server(data -> {
             Platform.runLater(()->{
-                Message msg = (Message) data;
-                SERVERLOG.getItems().add(msg.getClient() + " [" + msg.getMsgType() + "]: " + msg.getMessage());
+                if (data instanceof Message) {
+                    Message msg = (Message) data;
+                    SERVERLOG.getItems().add(msg.getClient() + " [" + msg.getMsgType() + "]: " + msg.getMessage());
+                }
             });
         });
 
