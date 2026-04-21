@@ -41,7 +41,6 @@ public class Server {
                     clients.add(c);
                     players.add(new Players(c));
                     c.start();
-
                     count++;
                 }
             }//end of try

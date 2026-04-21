@@ -1,11 +1,14 @@
 Checkers/Rules.class
-Checkers/Board.class
+Players.class
 Checkers/Move.class
 Checkers/Pieces.class
+Message.class
+Players$Status.class
+GameSession.class
+Checkers/Board.class
 Server$ClientThread.class
 Server.class
 ServerGUI.class
-Message.class
 Server$TheServer.class
 Checkers/Pieces$Color.class
 ServerGUI$1.class
