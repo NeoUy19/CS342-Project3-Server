@@ -1,6 +1,8 @@
 package Checkers;
 
-public class Pieces {
+import java.io.Serializable;
+
+public class Pieces implements Serializable {
 
     public enum Color{BLACK,RED}
     private Color color;

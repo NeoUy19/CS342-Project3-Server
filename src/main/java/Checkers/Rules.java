@@ -11,15 +11,20 @@ public class Rules {
         int pCol = move.getpCol();
         int nRow = move.getnRow();
         int nCol = move.getnCol();
+        System.out.println("pRow: " + pRow + " pCol: " + pCol + " piece: " + board.getPiece(pRow, pCol));
 
         if (board.getCurrentMove() == Pieces.Color.RED) { //check if its reds turn
+            System.out.println("currentMove: " + board.getCurrentMove());
+            System.out.println("pieceColor: " + board.getPiece(pRow, pCol).getColor());
             if (board.getPiece(pRow, pCol).getColor() != Pieces.Color.RED) { // wrong send error
                 return false;
             }
             if (nRow > 7 || nCol > 7 || nRow < 0 || nCol < 0) { //out of bounds error
                 return false;
             }
-                if (((nRow + nCol) % 2 == 0) && (nRow < pRow && Math.abs(nCol - pCol) == 1)) { //valid move going forward diagonally
+                if (((nRow + nCol) % 2 != 0) && (nRow < pRow && Math.abs(nCol - pCol) == 1)) { //valid move going forward diagonally
+                    System.out.println("nRow: " + nRow + " nCol: " + nCol + " nPiece: " + board.getPiece(nRow, nCol));
+
                     if (board.getPiece(nRow, nCol) == null) { //check if the new spot is empty
                         board.setPiece(nRow, nCol, board.getPiece(pRow, pCol));
                         board.setPiece(pRow, pCol, null);
@@ -47,7 +52,7 @@ public class Rules {
             if (nRow > 7 || nCol > 7 || nRow < 0 || nCol < 0) { //out of bounds error
                 return false;
             }
-            if (((nRow + nCol) % 2 == 0) && (nRow > pRow && Math.abs(nCol - pCol) == 1)) { //valid move going forward diagonally
+            if (((nRow + nCol) % 2 != 0) && (nRow > pRow && Math.abs(nCol - pCol) == 1)) { //valid move going forward diagonally
                 if (board.getPiece(nRow, nCol) == null) { //check if the new spot is empty
                     board.setPiece(nRow, nCol, board.getPiece(pRow, pCol));
                     board.setPiece(pRow, pCol, null);

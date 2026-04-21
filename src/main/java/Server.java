@@ -87,8 +87,11 @@ public class Server {
                 try{
                     Object received = in.readObject();
                     if (received instanceof Checkers.Move){ //Player moves a piece
+                        System.out.println("Move received from client");
                         Checkers.Move playerMove = (Checkers.Move)  received;
                         GameSession session = sessions.get(this);
+                        System.out.println("Session: " + session);
+
                         ClientThread other;
                         if (session.rules.isValidMove(playerMove)){ //valid move check
                             if (session.playerOne.getClientThread() == this) {
@@ -158,7 +161,7 @@ public class Server {
                             }
                         }
                         else if (message.getMsgType().equals(Message.challengeResponse)) {
-                            if (message.getMessage().equals("accept")) {
+                            if (message.getMessage().equals("Accept")) {
                                 Players challenger = null;
                                 Players accepter = null;
                                 for (Players p : players) {
@@ -177,9 +180,12 @@ public class Server {
                                     sessions.put(accepter.getClientThread(), newSession);
                                     challenger.setStatus(Players.Status.IN_GAME);
                                     accepter.setStatus(Players.Status.IN_GAME);
+                                    challenger.getClientThread().out.writeObject(new Message(Message.startGame, "RED", challenger.getClientThread().username, accepter.getClientThread().username));
+                                    accepter.getClientThread().out.writeObject(new Message(Message.startGame, "BLACK", accepter.getClientThread().username, challenger.getClientThread().username));
                                     SERVERLOG.accept(new Message(Message.serverMessage,
                                             challenger.getClientThread().username + " vs " +
                                                     accepter.getClientThread().username + " game started!", "Server"));
+
                                 }
                             } else if (message.getMessage().equals("decline")) {
                                 // Notify the challenger their challenge was declined
@@ -196,6 +202,7 @@ public class Server {
                     }
                 }
                 catch(Exception e){
+                    System.out.println("Exception: " + e.getClass().getName() + " - " + e.getMessage());
                     SERVERLOG.accept(e);
                 }
             }
