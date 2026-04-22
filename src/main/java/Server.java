@@ -196,8 +196,8 @@ public class Server {
                                     sessions.put(accepter.getClientThread(), newSession);
                                     challenger.setStatus(Players.Status.IN_GAME);
                                     accepter.setStatus(Players.Status.IN_GAME);
-                                    challenger.getClientThread().out.writeObject(new Message(Message.startGame, "BLACK", challenger.getClientThread().username, accepter.getClientThread().username));
-                                    accepter.getClientThread().out.writeObject(new Message(Message.startGame, "RED", accepter.getClientThread().username, challenger.getClientThread().username));
+                                    challenger.getClientThread().out.writeObject(new Message(Message.startGame, "RED", challenger.getClientThread().username, accepter.getClientThread().username));
+                                    accepter.getClientThread().out.writeObject(new Message(Message.startGame, "BLACK", accepter.getClientThread().username, challenger.getClientThread().username));
                                     SERVERLOG.accept(new Message(Message.serverMessage,
                                             challenger.getClientThread().username + " vs " +
                                                     accepter.getClientThread().username + " game started!", "Server"));
@@ -220,8 +220,7 @@ public class Server {
                 catch(Exception e){
                     System.out.println("Exception: " + e.getClass().getName() + " - " + e.getMessage());
                     e.printStackTrace();
-                    SERVERLOG.accept(e);
-                }
+                    SERVERLOG.accept(e);                }
             }
         }
             public boolean checkUsername(String username){
