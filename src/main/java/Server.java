@@ -205,14 +205,27 @@ public class Server {
                                 }
                             } else if (message.getMessage().equals("Decline")) {
                                 // Notify the challenger their challenge was declined
-                                for (ClientThread c : clients) {
-                                    if (c.username != null && c.username.equals(message.getTarget())) {
-                                        c.out.writeObject(new Message(Message.serverMessage,
-                                                this.username + " declined your challenge!", "Server"));
+                                Players challenger = null;
+                                Players accepter = null;
+
+                                for (Players p : players) {
+                                    if (p.getClientThread().username != null &&
+                                            p.getClientThread().username.equals(message.getTarget())) {
+                                        challenger = p;
+                                    }
+                                    if (p.getClientThread().equals(this)) {
+                                        accepter = p;
                                     }
                                 }
-                                SERVERLOG.accept(new Message(Message.serverMessage,
-                                        this.username + " declined a challenge!", "Server"));
+                                challenger.getClientThread().out.writeObject(new Message(Message.challengeResponse, "Decline", challenger.getClientThread().username, accepter.getClientThread().username));
+//                                for (ClientThread c : clients) {
+//                                    if (c.username != null && c.username.equals(message.getTarget())) {
+//                                        c.out.writeObject(new Message(Message.serverMessage,
+//                                                this.username + " declined your challenge!", "Server"));
+//                                    }
+//                                }
+//                                SERVERLOG.accept(new Message(Message.serverMessage,
+//                                        this.username + " declined a challenge!", "Server"));
                             }
                         }
                     }
