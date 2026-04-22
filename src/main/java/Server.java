@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.function.Consumer;
 
+import Checkers.Pieces;
 import javafx.application.Platform;
 import javafx.scene.control.ListView;
 
@@ -98,8 +99,26 @@ public class Server {
                         if (session.rules.isValidMove(playerMove)){ //valid move check
                             session.playerOne.getClientThread().out.writeObject(playerMove);
                             session.playerTwo.getClientThread().out.writeObject(playerMove);
-                            SERVERLOG.accept(new Message(Message.serverMessage, playerMove.getPiece().getColor().toString() +"Moved their piece!", "Server"));
+                            SERVERLOG.accept(new Message(Message.serverMessage, playerMove.getPiece().getColor().toString() +" Moved their piece!", "Server"));
 
+                            boolean isJump = Math.abs(playerMove.getnRow() - playerMove.getpRow()) == 2; //check for multi jumps
+                            if (isJump) {
+                                ArrayList<Checkers.Move> extraJumps = session.rules.getMultiJumps(
+                                        playerMove.getnRow(), playerMove.getnCol(), playerMove.getPiece().getColor());
+                                for (Checkers.Move jump : extraJumps) {
+                                    session.playerOne.getClientThread().out.writeObject(jump);
+                                    session.playerTwo.getClientThread().out.writeObject(jump);
+                                }
+                            }
+                            Pieces.Color winner = session.rules.checkForWinner();
+                            if ( winner != null && winner.toString().equals("BLACK")){
+                                session.playerOne.getClientThread().out.writeObject(new Message(Message.serverMessage, session.playerTwo.getClientThread().username + "Wins!", "Server"));
+                                session.playerTwo.getClientThread().out.writeObject(new Message(Message.serverMessage, session.playerTwo.getClientThread().username + "Wins!","Server"));
+                            }
+                            else if(winner != null && winner.toString().equals("RED")){
+                                session.playerOne.getClientThread().out.writeObject(new Message(Message.serverMessage, session.playerOne.getClientThread().username + "Wins!","Server"));
+                                session.playerTwo.getClientThread().out.writeObject(new Message(Message.serverMessage, session.playerOne.getClientThread().username + "Wins!","Server"));
+                            }
                         }
                         else { //move is invalid send error message in log and client
                             SERVERLOG.accept(new Message(Message.serverMessage, playerMove.getPiece().getColor().toString() +" Made an illegal move! Redo!", "Server" ));
