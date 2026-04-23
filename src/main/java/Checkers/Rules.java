@@ -43,6 +43,7 @@ public class Rules {
                 return false;
             }
             if (((nRow + nCol) % 2 != 0) && (nRow == pRow + 1 && Math.abs(nCol - pCol) == 1)) { //valid move going forward diagonally
+                if (forceTake(Pieces.Color.RED)) return false;
                 if (board.getPiece(nRow, nCol) == null) { //check if the new spot is empty
                     board.setPiece(nRow, nCol, board.getPiece(pRow, pCol));
                     board.setPiece(pRow, pCol, null);
@@ -89,6 +90,7 @@ public class Rules {
             }
 
             if (((nRow + nCol) % 2 != 0) && (nRow == pRow - 1 && Math.abs(nCol - pCol) == 1)) { //valid move going forward diagonally
+                if (forceTake(Pieces.Color.BLACK)) return false;
                 if (board.getPiece(nRow, nCol) == null) { //check if the new spot is empty
                     board.setPiece(nRow, nCol, board.getPiece(pRow, pCol));
                     board.setPiece(pRow, pCol, null);
@@ -141,6 +143,7 @@ public class Rules {
             return false;
         }
         if (((nRow + nCol) % 2 != 0) && (nRow == pRow + 1 && Math.abs(nCol - pCol) == 1)) { //valid move going forward diagonally
+            if (forceTake(Pieces.Color.RED)) return false;
             if (board.getPiece(nRow, nCol) == null) { //check if the new spot is empty
                 board.setPiece(nRow, nCol, board.getPiece(pRow, pCol));
                 board.setPiece(pRow, pCol, null);
@@ -174,6 +177,7 @@ public class Rules {
         }
 
         if (((nRow + nCol) % 2 != 0) && (nRow == pRow - 1 && Math.abs(nCol - pCol) == 1)) { //valid move going forward diagonally
+            if (forceTake(Pieces.Color.BLACK)) return false;
             if (board.getPiece(nRow, nCol) == null) { //check if the new spot is empty
                 board.setPiece(nRow, nCol, board.getPiece(pRow, pCol));
                 board.setPiece(pRow, pCol, null);
@@ -189,55 +193,6 @@ public class Rules {
             }
         }
         return false; //send an error message on clients screen
-    }
-    public boolean continueJumpRed(int row, int col, Pieces.Color color) {
-        if (row > 7 || col > 7 || row < 0 || col < 0) return false;
-        if (row + 1 <= 7 && col + 1 <= 7 && row + 2 <= 7 && col + 2 <= 7) {
-            Pieces mid = board.getPiece(row + 1, col + 1);
-            if (mid != null && mid.getColor() == Pieces.Color.BLACK && board.getPiece(row + 2, col + 2) == null) {
-                board.setPiece(row + 1, col + 1, null);
-                board.setPiece(row + 2, col + 2, board.getPiece(row, col));
-                board.setPiece(row, col, null);
-                continueJumpRed(row + 2, col + 2, color);
-                return true;
-            }
-        }
-        if (row + 1 <= 7 && col - 1 >= 0 && row + 2 <= 7 && col - 2 >= 0) {
-            Pieces mid = board.getPiece(row + 1, col - 1);
-            if (mid != null && mid.getColor() == Pieces.Color.BLACK && board.getPiece(row + 2, col - 2) == null) {
-                board.setPiece(row + 1, col - 1, null);
-                board.setPiece(row + 2, col - 2, board.getPiece(row, col));
-                board.setPiece(row, col, null);
-                continueJumpRed(row + 2, col - 2, color);
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public boolean continueJumpBlack(int row, int col, Pieces.Color color) {
-        if (row > 7 || col > 7 || row < 0 || col < 0) return false;
-        if (row - 1 >= 0 && col + 1 <= 7 && row - 2 >= 0 && col + 2 <= 7) {
-            Pieces mid = board.getPiece(row - 1, col + 1);
-            if (mid != null && mid.getColor() == Pieces.Color.RED && board.getPiece(row - 2, col + 2) == null) {
-                board.setPiece(row - 1, col + 1, null);
-                board.setPiece(row - 2, col + 2, board.getPiece(row, col));
-                board.setPiece(row, col, null);
-                continueJumpBlack(row - 2, col + 2, color);
-                return true;
-            }
-        }
-        if (row - 1 >= 0 && col - 1 >= 0 && row - 2 >= 0 && col - 2 >= 0) {
-            Pieces mid = board.getPiece(row - 1, col - 1);
-            if (mid != null && mid.getColor() == Pieces.Color.RED && board.getPiece(row - 2, col - 2) == null) {
-                board.setPiece(row - 1, col - 1, null);
-                board.setPiece(row - 2, col - 2, board.getPiece(row, col));
-                board.setPiece(row, col, null);
-                continueJumpBlack(row - 2, col - 2, color);
-                return true;
-            }
-        }
-        return false;
     }
 
     public ArrayList<Move> getMultiJumps(int row, int col, Pieces.Color color) {
@@ -328,5 +283,31 @@ public class Rules {
         if (numRed == 0) return Pieces.Color.BLACK;
         if (numBlack == 0) return Pieces.Color.RED;
         return null;
+    }
+
+    private boolean forceTake(Pieces.Color color){
+        for (int row = 0; row < 8; row++) {
+            for (int col = 0; col < 8; col++) {
+                if (board.getPiece(row,col) != null && board.getPiece(row,col).getColor() == color) {
+                    if (color == Pieces.Color.RED) { //check if the pieces of this color have to force takes
+                        if (row + 2 <= 7 && col + 2 <= 7 && board.getPiece(row+1,col+1) != null&&board.getPiece(row+1,col+1).getColor() == Pieces.Color.BLACK && board.getPiece(row+2,col+2) == null) {//down right check
+                            return true;
+                        }
+                        else if (row + 2 <= 7 && col - 2 >= 0 && board.getPiece(row+1, col-1) != null && board.getPiece(row+1, col-1).getColor() == Pieces.Color.BLACK && board.getPiece(row+2, col-2) == null) {//down left check
+                            return true;
+                        }
+                    }
+                    else if (color == Pieces.Color.BLACK) {
+                        if (row - 2 >= 0 && col + 2 <= 7 && board.getPiece(row-1, col+1)!= null&& board.getPiece(row-1, col+1).getColor() ==Pieces.Color.RED && board.getPiece(row-2,col+2) == null ) {
+                            return true;
+                        }
+                        else if(row - 2 >= 0 && col - 2 >= 0 && board.getPiece(row-1, col-1)!=null && board.getPiece(row-1, col-1).getColor() == Pieces.Color.RED && board.getPiece(row-2, col-2) == null ) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        return  false;
     }
 }
