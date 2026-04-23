@@ -9,6 +9,7 @@ Checkers/Board.class
 Server$ClientThread.class
 Server.class
 ServerGUI.class
+Checkers/Pieces$PieceType.class
 Server$TheServer.class
 Checkers/Pieces$Color.class
 ServerGUI$1.class

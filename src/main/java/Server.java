@@ -97,6 +97,11 @@ public class Server {
                                 " To: " + playerMove.getnRow() + "," + playerMove.getnCol());
 
                         if (session.rules.isValidMove(playerMove)){ //valid move check
+                            Checkers.Pieces pieceAtNewPos = session.board.getPiece(playerMove.getnRow(), playerMove.getnCol());
+                            if (pieceAtNewPos != null && pieceAtNewPos.getPieceType() == Checkers.Pieces.PieceType.KING) {
+                                playerMove = new Checkers.Move(pieceAtNewPos, playerMove.getpRow(), playerMove.getpCol(),
+                                        playerMove.getnRow(), playerMove.getnCol());
+                            }
                             session.playerOne.getClientThread().out.writeObject(playerMove);
                             session.playerTwo.getClientThread().out.writeObject(playerMove);
                             SERVERLOG.accept(new Message(Message.serverMessage, playerMove.getPiece().getColor().toString() +" Moved their piece!", "Server"));
