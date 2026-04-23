@@ -111,6 +111,11 @@ public class Server {
                                 ArrayList<Checkers.Move> extraJumps = session.rules.getMultiJumps(
                                         playerMove.getnRow(), playerMove.getnCol(), playerMove.getPiece().getColor());
                                 for (Checkers.Move jump : extraJumps) {
+                                    Checkers.Pieces jumpPieceAtNewPos = session.board.getPiece(jump.getnRow(), jump.getnCol());
+                                    if (jumpPieceAtNewPos != null && jumpPieceAtNewPos.getPieceType() == Checkers.Pieces.PieceType.KING) {
+                                        jump = new Checkers.Move(jumpPieceAtNewPos, jump.getpRow(), jump.getpCol(),
+                                                jump.getnRow(), jump.getnCol());
+                                    }
                                     session.playerOne.getClientThread().out.writeObject(jump);
                                     session.playerTwo.getClientThread().out.writeObject(jump);
                                 }
