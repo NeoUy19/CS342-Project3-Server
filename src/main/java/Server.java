@@ -228,6 +228,8 @@ public class Server {
                                     }
                                 }
                                 challenger.getClientThread().out.writeObject(new Message(Message.challengeResponse, "Decline", challenger.getClientThread().username, accepter.getClientThread().username));
+                                accepter.getClientThread().out.writeObject(new Message(Message.challengeResponse, "Decline", challenger.getClientThread().username, accepter.getClientThread().username));
+
 //                                for (ClientThread c : clients) {
 //                                    if (c.username != null && c.username.equals(message.getTarget())) {
 //                                        c.out.writeObject(new Message(Message.serverMessage,
