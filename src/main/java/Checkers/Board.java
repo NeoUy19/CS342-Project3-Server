@@ -6,9 +6,13 @@ public class Board {
 
     private Pieces.Color currentMove = Pieces.Color.RED;
 
+    public Board(Pieces[][] tempBoard) {
+        this.board = tempBoard;
+    }
     public Board() {
         this.setBoard();
     }
+
     private void setBoard() { //fill the board
         for (int row = 0; row < 8; row++) {
             for (int col = 0; col < 8; col++) {
