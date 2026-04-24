@@ -121,13 +121,18 @@ public class Server {
                                 }
                             }
                             Pieces.Color winner = session.rules.checkForWinner();
+                            boolean isDraw = session.rules.checkForDraw();
                             if ( winner != null && winner.toString().equals("BLACK")){
-                                session.playerOne.getClientThread().out.writeObject(new Message(Message.serverMessage, session.playerTwo.getClientThread().username + "Wins!", "Server"));
-                                session.playerTwo.getClientThread().out.writeObject(new Message(Message.serverMessage, session.playerTwo.getClientThread().username + "Wins!","Server"));
+                                session.playerOne.getClientThread().out.writeObject(new Message(Message.serverMessage, session.playerTwo.getClientThread().username + " Wins!", "Server"));
+                                session.playerTwo.getClientThread().out.writeObject(new Message(Message.serverMessage, session.playerTwo.getClientThread().username + " Wins!","Server"));
                             }
                             else if(winner != null && winner.toString().equals("RED")){
-                                session.playerOne.getClientThread().out.writeObject(new Message(Message.serverMessage, session.playerOne.getClientThread().username + "Wins!","Server"));
-                                session.playerTwo.getClientThread().out.writeObject(new Message(Message.serverMessage, session.playerOne.getClientThread().username + "Wins!","Server"));
+                                session.playerOne.getClientThread().out.writeObject(new Message(Message.serverMessage, session.playerOne.getClientThread().username + " Wins!","Server"));
+                                session.playerTwo.getClientThread().out.writeObject(new Message(Message.serverMessage, session.playerOne.getClientThread().username + " Wins!","Server"));
+                            }
+                            else if (winner == null && isDraw){
+                                session.playerOne.getClientThread().out.writeObject(new Message(Message.serverMessage,  "Draw!","Server"));
+                                session.playerTwo.getClientThread().out.writeObject(new Message(Message.serverMessage, "Draw!","Server"));
                             }
                         }
                         else { //move is invalid send error message in log and client
@@ -152,6 +157,21 @@ public class Server {
                         }
                         else if (message.getMsgType().equals(Message.sendToAll)) { //Send a message to all users
                             updateClients(new Message(Message.sendToAll, message.getMessage(), this.username));
+                        }
+                        else if (message.getMsgType().equals(Message.serverMessage)) {
+                            if (message.getMessage().equals("Resign")) {
+                                GameSession session = sessions.get(this);
+                                String resigner = this.username;
+                                String winner;
+
+                                if (session.playerOne.getClientThread().username.equals(resigner)) {
+                                    winner = session.playerTwo.getClientThread().username;
+                                } else {
+                                    winner = session.playerOne.getClientThread().username;
+                                }
+                                session.playerOne.getClientThread().out.writeObject(new Message(Message.serverMessage, winner + " Wins!", "Server"));
+                                session.playerTwo.getClientThread().out.writeObject(new Message(Message.serverMessage, winner + " Wins!", "Server"));
+                            }
                         }
                         else if (message.getMsgType().equals(Message.sendToIndvidual)) { //send a message to a certain person
                             Message indvidualMsg = new  Message(Message.sendToIndvidual, message.getMessage(), this.username,  message.getTarget());
