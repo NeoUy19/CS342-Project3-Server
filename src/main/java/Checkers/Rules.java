@@ -8,13 +8,13 @@ public class Rules {
         this.board = board;
     }
 
-    public boolean isValidMove(Move move) { // non-king
+    public boolean isValidMove(Move move) { // These are forn ormal pieces
         int pRow = move.getpRow();
         int pCol = move.getpCol();
         int nRow = move.getnRow();
         int nCol = move.getnCol();
 
-        if (board.getPiece(pRow, pCol) != null && board.getPiece(pRow, pCol).getPieceType() == Pieces.PieceType.KING) { //check if the piece is a king
+        if (board.getPiece(pRow, pCol) != null && board.getPiece(pRow, pCol).getPieceType() == Pieces.PieceType.KING) { //check if the piece is a king if it is go to the valid king method
             return isValidKingMove(move);
         }
         if (board.getCurrentMove() == Pieces.Color.RED) { //check if its reds turn
@@ -25,16 +25,14 @@ public class Rules {
             if (nRow > 7 || nCol > 7 || nRow < 0 || nCol < 0) { //out of bounds error
                 return false;
             }
-            if (nRow == pRow + 2 && Math.abs(nCol - pCol) == 2) { //takes
+            if (nRow == pRow + 2 && Math.abs(nCol - pCol) == 2) { //Case where the red piece takes the piece
                 int midRow = pRow + 1;
                 int midCol = (pCol + nCol) / 2;
-                if (board.getPiece(midRow, midCol) != null &&
-                        board.getPiece(midRow, midCol).getColor() == Pieces.Color.BLACK &&
-                        board.getPiece(nRow, nCol) == null) {
-                    board.setPiece(midRow, midCol, null);
+                if (board.getPiece(midRow, midCol) != null && board.getPiece(midRow, midCol).getColor() == Pieces.Color.BLACK && board.getPiece(nRow, nCol) == null) {
+                    board.setPiece(midRow, midCol, null); //piece is taken
                     board.setPiece(nRow, nCol, board.getPiece(pRow, pCol));
                     board.setPiece(pRow, pCol, null);
-                    if (nRow == 7){
+                    if (nRow == 7){ //check to see if the piece can be promoted
                         board.getPiece(nRow, nCol).setPieceType(Pieces.PieceType.KING);
                     }
                     board.switchTurn();
@@ -42,12 +40,12 @@ public class Rules {
                 }
                 return false;
             }
-            if (((nRow + nCol) % 2 != 0) && (nRow == pRow + 1 && Math.abs(nCol - pCol) == 1)) { //valid move going forward diagonally
-                if (forceTake(Pieces.Color.RED)) return false;
+            if (((nRow + nCol) % 2 != 0) && (nRow == pRow + 1 && Math.abs(nCol - pCol) == 1)) { //valid move going forward diagonally without needing to take
+                if (forceTake(Pieces.Color.RED)) return false; //if theres a force take make a normal move not happen
                 if (board.getPiece(nRow, nCol) == null) { //check if the new spot is empty
                     board.setPiece(nRow, nCol, board.getPiece(pRow, pCol));
                     board.setPiece(pRow, pCol, null);
-                    if (nRow == 7){
+                    if (nRow == 7){//check to see if the piece can be promoted
                         board.getPiece(nRow, nCol).setPieceType(Pieces.PieceType.KING);
                     }
                     board.switchTurn();
@@ -63,7 +61,7 @@ public class Rules {
             }
         }
 
-        if (board.getCurrentMove() == Pieces.Color.BLACK) {
+        if (board.getCurrentMove() == Pieces.Color.BLACK) { //copy and paste from above code, just swapped the colors
             if (board.getPiece(pRow, pCol) == null) return false;
             if (board.getPiece(pRow, pCol).getColor() != Pieces.Color.BLACK) { // wrong send error
                 return false;
@@ -112,7 +110,7 @@ public class Rules {
         return false; //send an error message on clients screen
     }
 
-    public boolean isValidKingMove(Move move) {
+    public boolean isValidKingMove(Move move) { //basically the same as valid move, except we got rid of piece color constraints and got the enemy color based off of the color of the piece
         int pRow = move.getpRow();
         int pCol = move.getpCol();
         int nRow = move.getnRow();
@@ -158,9 +156,6 @@ public class Rules {
                 }
             }
         }
-
-
-
         if (nRow == pRow - 2 && Math.abs(nCol - pCol) == 2) {
             int midRow = pRow - 1;
             int midCol = (pCol + nCol) / 2;
@@ -194,22 +189,21 @@ public class Rules {
         }
         return false; //send an error message on clients screen
     }
-
+    /*Recursive function that auto jumps when able*/
     public ArrayList<Move> getMultiJumps(int row, int col, Pieces.Color color) {
-        ArrayList<Move> jumps = new ArrayList<>();
-        if (board.getPiece(row, col) != null && board.getPiece(row, col).getPieceType() == Pieces.PieceType.KING) {
+        ArrayList<Move> jumps = new ArrayList<>(); //store each move to save
+        if (board.getPiece(row, col) != null && board.getPiece(row, col).getPieceType() == Pieces.PieceType.KING) { //check if its a king
             return kingMultiJump(row, col, color);
         }
         if (color == Pieces.Color.RED) {
-            // Check down-right
-            if (row + 2 <= 7 && col + 2 <= 7) {
+            if (row + 2 <= 7 && col + 2 <= 7) {//check going down and right
                 Pieces mid = board.getPiece(row + 1, col + 1);
                 if (mid != null && mid.getColor() == Pieces.Color.BLACK && board.getPiece(row + 2, col + 2) == null) {
                     Pieces moving = board.getPiece(row, col);
                     board.setPiece(row + 1, col + 1, null);
                     board.setPiece(row + 2, col + 2, moving);
                     board.setPiece(row, col, null);
-                    if (row + 2 == 7) {
+                    if (row + 2 == 7) { //if pieces jump check if it can be promoted
                         moving = new Pieces(Pieces.Color.RED, Pieces.PieceType.KING);
                         board.setPiece(row + 2, col + 2, moving);
                     }
@@ -218,8 +212,7 @@ public class Rules {
                     return jumps;
                 }
             }
-            // Check down-left
-            if (row + 2 <= 7 && col - 2 >= 0) {
+            if (row + 2 <= 7 && col - 2 >= 0) { //check going down and left
                 Pieces mid = board.getPiece(row + 1, col - 1);
                 if (mid != null && mid.getColor() == Pieces.Color.BLACK && board.getPiece(row + 2, col - 2) == null) {
                     Pieces moving = board.getPiece(row, col);
@@ -235,9 +228,8 @@ public class Rules {
                     return jumps;
                 }
             }
-        } else {
-            // Check up-right
-            if (row - 2 >= 0 && col + 2 <= 7) {
+        } else { //black piece case
+            if (row - 2 >= 0 && col + 2 <= 7) { //check going up and right
                 Pieces mid = board.getPiece(row - 1, col + 1);
                 if (mid != null && mid.getColor() == Pieces.Color.RED && board.getPiece(row - 2, col + 2) == null) {
                     Pieces moving = board.getPiece(row, col);
@@ -253,8 +245,7 @@ public class Rules {
                     return jumps;
                 }
             }
-            // Check up-left
-            if (row - 2 >= 0 && col - 2 >= 0) {
+            if (row - 2 >= 0 && col - 2 >= 0) { //check going up and left
                 Pieces mid = board.getPiece(row - 1, col - 1);
                 if (mid != null && mid.getColor() == Pieces.Color.RED && board.getPiece(row - 2, col - 2) == null) {
                     Pieces moving = board.getPiece(row, col);
@@ -273,6 +264,7 @@ public class Rules {
         }
         return jumps;
     }
+    /*Same as get multi jump but king so color constraints are gone*/
     public ArrayList<Move> kingMultiJump(int row, int col, Pieces.Color color) {
         ArrayList<Move> jumps = new ArrayList<>();
         Pieces.Color enemyColor = null;
@@ -281,8 +273,7 @@ public class Rules {
         } else if (board.getPiece(row, col).getColor() == Pieces.Color.BLACK) {
             enemyColor = Pieces.Color.RED;
         }
-        // Check down-right
-        if (row + 2 <= 7 && col + 2 <= 7) {
+        if (row + 2 <= 7 && col + 2 <= 7) { //check going down and right
             Pieces mid = board.getPiece(row + 1, col + 1);
             if (mid != null && mid.getColor() == enemyColor && board.getPiece(row + 2, col + 2) == null) {
                 Pieces moving = board.getPiece(row, col);
@@ -294,8 +285,7 @@ public class Rules {
                 return jumps;
             }
         }
-        // Check down-left
-        if (row + 2 <= 7 && col - 2 >= 0) {
+        if (row + 2 <= 7 && col - 2 >= 0) { //check going down and left
             Pieces mid = board.getPiece(row + 1, col - 1);
             if (mid != null && mid.getColor() == enemyColor && board.getPiece(row + 2, col - 2) == null) {
                 Pieces moving = board.getPiece(row, col);
@@ -307,8 +297,7 @@ public class Rules {
                 return jumps;
             }
         }
-        // Check up-right
-        if (row - 2 >= 0 && col + 2 <= 7) {
+        if (row - 2 >= 0 && col + 2 <= 7) { //check going up and right
             Pieces mid = board.getPiece(row - 1, col + 1);
             if (mid != null && mid.getColor() == enemyColor && board.getPiece(row - 2, col + 2) == null) {
                 Pieces moving = board.getPiece(row, col);
@@ -320,8 +309,7 @@ public class Rules {
                 return jumps;
             }
         }
-        // Check up-left
-        if (row - 2 >= 0 && col - 2 >= 0) {
+        if (row - 2 >= 0 && col - 2 >= 0) {//check going up and left
             Pieces mid = board.getPiece(row - 1, col - 1);
             if (mid != null && mid.getColor() == enemyColor && board.getPiece(row - 2, col - 2) == null) {
                 Pieces moving = board.getPiece(row, col);
@@ -336,6 +324,8 @@ public class Rules {
         return jumps;
     }
 
+    /*Checks for winner, goes through the entire board, counting the amount of pieces on each color
+    if at the end a color has 0 return color of the winner, if each both have an x amount dont do anything*/
     public Pieces.Color checkForWinner(){
         int numRed = 0;
         int numBlack = 0;
@@ -353,7 +343,9 @@ public class Rules {
         if (numBlack == 0) return Pieces.Color.RED;
         return null;
     }
-
+    /*Check for a draw by seeing if all pieces have an available move, if not return true
+    if they do have moves return false
+    NOTE: apparently this is NOT how draws work in checkers shouldve googled earlier*/
     public boolean checkForDraw(){
         for (int row = 0; row < 8; row++) {
             for (int col = 0; col < 8; col++) {
@@ -366,7 +358,8 @@ public class Rules {
         }
         return true; //no piece has a move, return true
     }
-
+    /*Checks for force takes, if there is one return true if not return false
+    used in isValidMove*/
     private boolean forceTake(Pieces.Color color){
         for (int row = 0; row < 8; row++) {
             for (int col = 0; col < 8; col++) {
@@ -380,10 +373,10 @@ public class Rules {
                         }
                     }
                     else if (color == Pieces.Color.BLACK) {
-                        if (row - 2 >= 0 && col + 2 <= 7 && board.getPiece(row-1, col+1)!= null&& board.getPiece(row-1, col+1).getColor() ==Pieces.Color.RED && board.getPiece(row-2,col+2) == null ) {
+                        if (row - 2 >= 0 && col + 2 <= 7 && board.getPiece(row-1, col+1)!= null&& board.getPiece(row-1, col+1).getColor() ==Pieces.Color.RED && board.getPiece(row-2,col+2) == null ) { //up right check
                             return true;
                         }
-                        else if(row - 2 >= 0 && col - 2 >= 0 && board.getPiece(row-1, col-1)!=null && board.getPiece(row-1, col-1).getColor() == Pieces.Color.RED && board.getPiece(row-2, col-2) == null ) {
+                        else if(row - 2 >= 0 && col - 2 >= 0 && board.getPiece(row-1, col-1)!=null && board.getPiece(row-1, col-1).getColor() == Pieces.Color.RED && board.getPiece(row-2, col-2) == null ) { //up left check
                             return true;
                         }
                     }
@@ -392,10 +385,10 @@ public class Rules {
         }
         return  false;
     }
-
+    /*For glowing squares where pieces are allowed to move. Stores an array of ints that have rows and columns*/
     public ArrayList<int[]> validMoves(int row, int col, Pieces.Color color){
         ArrayList<int[]> validMovesList = new ArrayList<>();
-        if (board.getPiece(row, col) != null && board.getPiece(row, col).getPieceType() == Pieces.PieceType.KING) {
+        if (board.getPiece(row, col) != null && board.getPiece(row, col).getPieceType() == Pieces.PieceType.KING) { //king check
             return kingValidMoves(row, col, color);
         }
         if (color == Pieces.Color.RED) { //case for red pieces
@@ -440,7 +433,7 @@ public class Rules {
         }
         return validMovesList;
     }
-
+    /*Same as valid moves*/
     public ArrayList<int[]> kingValidMoves(int row, int col, Pieces.Color color){
         ArrayList<int[]> validMovesList = new ArrayList<>();
         Pieces.Color enemyColor = null;

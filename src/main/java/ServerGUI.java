@@ -15,7 +15,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
-
+/*copied from hw5*/
 public class ServerGUI extends Application{
 
     HashMap<String, Scene> sceneMap;

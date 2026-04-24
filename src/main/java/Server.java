@@ -88,29 +88,21 @@ public class Server {
                 try{
                     Object received = in.readObject();
                     if (received instanceof Checkers.Move){ //Player moves a piece
-                        System.out.println("Move received from client");
-                        Checkers.Move playerMove = (Checkers.Move)  received;
+                        Checkers.Move playerMove = (Checkers.Move) received;
                         GameSession session = sessions.get(this);
-                        System.out.println("Session: " + session);
-                        System.out.println("Move piece: " + playerMove.getPiece());
-                        System.out.println("From: " + playerMove.getpRow() + "," + playerMove.getpCol() +
-                                " To: " + playerMove.getnRow() + "," + playerMove.getnCol());
-
                         if (session.rules.isValidMove(playerMove)){ //valid move check
                             Checkers.Pieces pieceAtNewPos = session.board.getPiece(playerMove.getnRow(), playerMove.getnCol());
-                            if (pieceAtNewPos != null && pieceAtNewPos.getPieceType() == Checkers.Pieces.PieceType.KING) {
-                                playerMove = new Checkers.Move(pieceAtNewPos, playerMove.getpRow(), playerMove.getpCol(),
-                                        playerMove.getnRow(), playerMove.getnCol());
+                            if (pieceAtNewPos != null && pieceAtNewPos.getPieceType() == Checkers.Pieces.PieceType.KING) { //if the piece is a king
+                                playerMove = new Checkers.Move(pieceAtNewPos, playerMove.getpRow(), playerMove.getpCol(), playerMove.getnRow(), playerMove.getnCol());
                             }
                             session.playerOne.getClientThread().out.writeObject(playerMove);
                             session.playerTwo.getClientThread().out.writeObject(playerMove);
-                            SERVERLOG.accept(new Message(Message.serverMessage, playerMove.getPiece().getColor().toString() +" Moved their piece!", "Server"));
+//                            SERVERLOG.accept(new Message(Message.serverMessage, playerMove.getPiece().getColor().toString() +" Moved their piece!", "Server"));
 
                             boolean isJump = Math.abs(playerMove.getnRow() - playerMove.getpRow()) == 2; //check for multi jumps
                             if (isJump) {
-                                ArrayList<Checkers.Move> extraJumps = session.rules.getMultiJumps(
-                                        playerMove.getnRow(), playerMove.getnCol(), playerMove.getPiece().getColor());
-                                for (Checkers.Move jump : extraJumps) {
+                                ArrayList<Checkers.Move> extraJumps = session.rules.getMultiJumps(playerMove.getnRow(), playerMove.getnCol(), playerMove.getPiece().getColor());
+                                for (Checkers.Move jump : extraJumps) { //auto jumps when theres multiple jumps
                                     Checkers.Pieces jumpPieceAtNewPos = session.board.getPiece(jump.getnRow(), jump.getnCol());
                                     if (jumpPieceAtNewPos != null && jumpPieceAtNewPos.getPieceType() == Checkers.Pieces.PieceType.KING) {
                                         jump = new Checkers.Move(jumpPieceAtNewPos, jump.getpRow(), jump.getpCol(),
@@ -120,7 +112,7 @@ public class Server {
                                     session.playerTwo.getClientThread().out.writeObject(jump);
                                 }
                             }
-                            Pieces.Color winner = session.rules.checkForWinner();
+                            Pieces.Color winner = session.rules.checkForWinner(); //check for winn or draw
                             boolean isDraw = session.rules.checkForDraw();
                             if ( winner != null && winner.toString().equals("BLACK")){
                                 session.playerOne.getClientThread().out.writeObject(new Message(Message.serverMessage, session.playerTwo.getClientThread().username + " Wins!", "Server"));
@@ -141,7 +133,7 @@ public class Server {
                         }
                     }
 
-                    else if(received instanceof Message){ //Player texts to another player or to create a new user
+                    else if(received instanceof Message){ //Server recieves something of Message class
                         Message message = (Message) received;
                         if(message.getMsgType().equals(Message.createUser)) { //When user clicks on "Create User" send them here
                             if (checkUsername(message.getClient())){
@@ -158,13 +150,12 @@ public class Server {
                         else if (message.getMsgType().equals(Message.sendToAll)) { //Send a message to all users
                             updateClients(new Message(Message.sendToAll, message.getMessage(), this.username));
                         }
-                        else if (message.getMsgType().equals(Message.serverMessage)) {
+                        else if (message.getMsgType().equals(Message.serverMessage)) { // logic for the resign button should have made this a resign message instead
                             if (message.getMessage().equals("Resign")) {
                                 GameSession session = sessions.get(this);
                                 String resigner = this.username;
                                 String winner;
-
-                                if (session.playerOne.getClientThread().username.equals(resigner)) {
+                                if (session.playerOne.getClientThread().username.equals(resigner)) { //get the winner
                                     winner = session.playerTwo.getClientThread().username;
                                 } else {
                                     winner = session.playerOne.getClientThread().username;
@@ -189,14 +180,14 @@ public class Server {
                                 }
                             }
                         }
-                        else if (message.getMsgType().equals(Message.status)){
+                        else if (message.getMsgType().equals(Message.status)){ //Doesnt really do anything wanted to use these to show what the players are doing
                             for (Players p : players) {
                                 if (p.getClientThread().equals(this)){
                                     p.setStatus(Players.Status.READY_TO_PLAY);
                                 }
                             }
                         }
-                        else if (message.getMsgType().equals(Message.challenge)) {
+                        else if (message.getMsgType().equals(Message.challenge)) { //send a challenge message to a target
                             for (ClientThread c : clients) {
                                 if (c.username != null && c.username.equals(message.getTarget())) {
                                     c.out.writeObject(new Message(Message.challenge,
@@ -210,7 +201,7 @@ public class Server {
                             if (message.getMessage().equals("Accept")) {
                                 Players challenger = null;
                                 Players accepter = null;
-                                for (Players p : players) {
+                                for (Players p : players) { //get the players
                                     if (p.getClientThread().username != null &&
                                             p.getClientThread().username.equals(message.getTarget())) {
                                         challenger = p;
@@ -220,20 +211,18 @@ public class Server {
                                     }
                                 }
                                 if (challenger != null && accepter != null) {
-                                    GameSession newSession = new GameSession(new Checkers.Board(), challenger, accepter);
+                                    GameSession newSession = new GameSession(new Checkers.Board(), challenger, accepter); //create a new session and add it to the list of active games
                                     activeGames.add(newSession);
-                                    sessions.put(challenger.getClientThread(), newSession);
+                                    sessions.put(challenger.getClientThread(), newSession); //put the 2 players inside of the sessions map and state that they are in the same game
                                     sessions.put(accepter.getClientThread(), newSession);
-                                    challenger.setStatus(Players.Status.IN_GAME);
+                                    challenger.setStatus(Players.Status.IN_GAME); //change the status of both
                                     accepter.setStatus(Players.Status.IN_GAME);
                                     challenger.getClientThread().out.writeObject(new Message(Message.startGame, "RED", challenger.getClientThread().username, accepter.getClientThread().username));
                                     accepter.getClientThread().out.writeObject(new Message(Message.startGame, "BLACK", accepter.getClientThread().username, challenger.getClientThread().username));
-                                    SERVERLOG.accept(new Message(Message.serverMessage,
-                                            challenger.getClientThread().username + " vs " +
-                                                    accepter.getClientThread().username + " game started!", "Server"));
+                                    SERVERLOG.accept(new Message(Message.serverMessage,  challenger.getClientThread().username + " vs " + accepter.getClientThread().username + " game started!", "Server"));
 
                                 }
-                            } else if (message.getMessage().equals("Decline")) {
+                            } else if (message.getMessage().equals("Decline")) { //case that the person that was challenged declines
                                 // Notify the challenger their challenge was declined
                                 Players challenger = null;
                                 Players accepter = null;
@@ -249,15 +238,6 @@ public class Server {
                                 }
                                 challenger.getClientThread().out.writeObject(new Message(Message.challengeResponse, "Decline", challenger.getClientThread().username, accepter.getClientThread().username));
                                 accepter.getClientThread().out.writeObject(new Message(Message.challengeResponse, "Decline", challenger.getClientThread().username, accepter.getClientThread().username));
-
-//                                for (ClientThread c : clients) {
-//                                    if (c.username != null && c.username.equals(message.getTarget())) {
-//                                        c.out.writeObject(new Message(Message.serverMessage,
-//                                                this.username + " declined your challenge!", "Server"));
-//                                    }
-//                                }
-//                                SERVERLOG.accept(new Message(Message.serverMessage,
-//                                        this.username + " declined a challenge!", "Server"));
                             }
                         }
                     }
